@@ -1,5 +1,4 @@
-console.log('test')
-
+//GAMEBOARD
 const gameboard = (() => {
     const positions = [];
 
@@ -7,24 +6,46 @@ const gameboard = (() => {
         const position = positionFactory();
         positions.push(position);
     }
-    
-    console.log(positions);
 
     function positionFactory(){
-        marked = false;
+        let symbol = "X";
+        const getSymbol = () => symbol;
+        
+        let marked = false;
+        const isMarked = () => marked;
+        const mark = () => {
+            marked = true;
+        };
 
-        
-        
-        return { marked };
+        return { isMarked, mark, getSymbol };
     }
-})()
 
-function playerFactory(name){
-    let score = 0;
-    return { name, score }
-}
+    function getPositionByIndex(index){
+        return positions[index];
+    }
 
-const player1 = playerFactory('Cesar');
-const player2 = playerFactory('Abraham');
+    return { getPositionByIndex };
+})();
 
-console.log(player1, player2)
+const game = ((gameboard) => {
+    //PLAYERS 
+    function playerFactory(name){
+        let score = 0;
+        return { name, score }
+    }
+    
+    const player1 = playerFactory('Cesar');
+    const player2 = playerFactory('Abraham');
+
+    function checkForConnection(index){
+        const position = gameboard.getPositionByIndex(index);
+        position.mark();
+
+        const radiusChecks = [
+            index - 1,
+            index + 1,
+            index - 3,
+            index + 3,
+        ];
+    }
+})(gameboard);
