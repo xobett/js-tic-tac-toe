@@ -27,22 +27,18 @@ const gameboard = (() => {
     return { getPositionByIndex, getIndexOfPosition };
 })();
 
-const game = ((gameboard) => {
-    function mark(index){
-        const position = gameboard.getPositionByIndex(index);
-        position.mark("X");
-        const position2 = gameboard.getPositionByIndex(4);
-        position2.mark("X");
-        const position3 = gameboard.getPositionByIndex(6);
-        position3.mark("X");
+//GAME
 
-        connectsRow = getConnection("X");
-        console.log(connectsRow)
+const game = ((gameboard) => {
+    function mark(index, symbol){
+        const position = gameboard.getPositionByIndex(index);
+        position.mark(symbol);
+
+        connectsRow = getConnection(symbol);
         if (connectsRow){
             gameOver();
         }
     }
-    mark(2);
 
     function gameOver(){
         console.log('game over');
@@ -92,7 +88,8 @@ const game = ((gameboard) => {
             for (let j = 0; j < positions.length; j++) {
                 const pos = gameboard.getPositionByIndex(positions[j]);
                 
-                if (!pos.isMarked() && pos.getSymbol() != symbol){
+                console.log(pos.getSymbol())
+                if (!pos.isMarked() || pos.getSymbol() != symbol){
                     connects = false;
                 }
             }
