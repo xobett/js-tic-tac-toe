@@ -11,37 +11,94 @@ const gameboard = (() => {
         let symbol = "";
         const getSymbol = () => symbol;
         
+        let owner;
+        const getOwner = () => owner;
+
         let marked = false;
         const isMarked = () => marked;
-        const mark = (newSymbol) => {
+        const mark = (player) => {
             marked = true;
-            symbol = newSymbol;
+            owner = player;
+            symbol = owner.getSymbol();
         };
 
-        return { isMarked, mark, getSymbol };
+        const clear = () => {
+            marked = false;
+            owner = null;
+            symbol = null;
+        }
+
+        return { isMarked, mark, getSymbol, getOwner, clear };
     }
 
     const getIndexOfPosition = (position) => positions.indexOf(position);
     const getPositionByIndex = (index) => positions[index];
+    const checkTie = () => {
+        let allPositionsMarked = true;
+        for (let i = 0; i < positions.length; i++) {
+            const pos = positions[i];
+            
+            if (!pos.isMarked()){
+                allPositionsMarked = false;
+                break;
+            }
+        }
+        return allPositionsMarked;
+    };
 
-    return { getPositionByIndex, getIndexOfPosition };
+    const reset = () => {
+        positions.forEach((pos) => pos.clear());
+    }
+
+    return { getPositionByIndex, getIndexOfPosition, checkTie, reset };
 })();
 
 //GAME
 
 const game = ((gameboard) => {
-    function mark(index, symbol){
-        const position = gameboard.getPositionByIndex(index);
-        position.mark(symbol);
+    let gameOver = false;
 
-        connectsRow = getConnection(symbol);
-        if (connectsRow){
-            gameOver();
-        }
+    const players = [
+        playerFactory('Cesar', 'X'),
+        playerFactory('Abraham', 'O'),
+    ];
+    let activePlayer = players[0];
+
+    const getActivePlayer = () => activePlayer;
+    const switchActivePlayer = () => {
+        activePlayer = activePlayer === players[0] ? players[1] : players[0];
+    };
+
+    const playRound = (position) => {
+        if (gameOver) return;
+
+        markPosition(position, getActivePlayer());
+        switchActivePlayer();
     }
 
-    function gameOver(){
-        console.log('game over');
+    const resetGame = () => {
+        gameboard.reset();
+        players.forEach((player) => player.clearScore());
+    }
+
+    function markPosition(index, player){
+        const position = gameboard.getPositionByIndex(index);
+        if (position.isMarked()){
+            console.log('Can\'t place a mark on a marked position.')
+            return;
+        }
+
+        position.mark(player);
+
+        connectsRow = getConnection(player.getSymbol());
+        isATie = gameboard.checkTie();
+
+        if (connectsRow){
+
+        }
+        else if(isATie){
+            console.log('It\'s a tie');
+        }
     }
 
     function getConnection(symbol){
@@ -88,7 +145,6 @@ const game = ((gameboard) => {
             for (let j = 0; j < positions.length; j++) {
                 const pos = gameboard.getPositionByIndex(positions[j]);
                 
-                console.log(pos.getSymbol())
                 if (!pos.isMarked() || pos.getSymbol() != symbol){
                     connects = false;
                 }
@@ -103,14 +159,21 @@ const game = ((gameboard) => {
         }
 
         return connects;
-    }    
+    }
+
+    return { playRound, getActivePlayer, resetGame };
 })(gameboard);
 
 //PLAYERS 
-function playerFactory(name){
+function playerFactory(name, symbol){
     let score = 0;
-    return { name, score }
-}
+    const sumScore = (amount) => {
+        score += amount;
+    };
 
-const player1 = playerFactory('Cesar');
-const player2 = playerFactory('Abraham');
+    const getScore = () => score;
+    const getSymbol = () => symbol;
+    const clearScore = () => score = 0;
+
+    return { name, sumScore, getScore, getSymbol, clearScore };
+}

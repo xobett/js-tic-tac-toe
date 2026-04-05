@@ -1,3 +1,9 @@
 :root{
-    
+    --clr-bckgrnd: #75757a;
+    --clr-white: #ffffff;
+    --clr-blck: #272727;
+    --clr-hover: #c9c9c9;
+    --clr-active: #8b8b8b;
+
+    user-select: none;
 }
