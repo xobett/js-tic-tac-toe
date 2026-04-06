@@ -1,10 +1,11 @@
 :root{
-    --clr-bckgrnd: #19354e;
+    --clr-bckgrnd: #80829e;
     --clr-white: #ffffff;
     --clr-blck: #272727;
     --clr-hover: #c9c9c9;
     --clr-active: #8b8b8b;
     --clr-dark-purple: #150f46;
+    --clr-blue: #5353ff;
     --grdnt-moon-purple: linear-gradient(to right, #8f94fb, #4e54c8);
     --grdnt-red-sunset: linear-gradient(to right, #363622, #150f46);
 
