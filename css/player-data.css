@@ -1,0 +1,16 @@
+.player-data{
+    color: var(--clr-hover);
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-align: center;
+
+    background-color: red;
+    height: 100px;
+}
+
+
+@media screen and (max-width:600px) {
+    .player-data{
+        font-size: 0.8rem;
+    }
+}

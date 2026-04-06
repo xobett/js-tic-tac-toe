@@ -1,10 +1,10 @@
 //GAMEBOARD
 const gameboard = (() => {
-    const positions = [];
+    const board = [];
 
     for (let i = 0; i < 9; i++) {
         const position = positionFactory();
-        positions.push(position);
+        board.push(position);
     }
 
     function positionFactory(){
@@ -31,12 +31,14 @@ const gameboard = (() => {
         return { isMarked, mark, getSymbol, getOwner, clear };
     }
 
-    const getIndexOfPosition = (position) => positions.indexOf(position);
-    const getPositionByIndex = (index) => positions[index];
+    const getBoard = () => board;
+
+    const getIndexOfPosition = (position) => board.indexOf(position);
+    const getPositionByIndex = (index) => board[index];
     const checkTie = () => {
         let allPositionsMarked = true;
-        for (let i = 0; i < positions.length; i++) {
-            const pos = positions[i];
+        for (let i = 0; i < board.length; i++) {
+            const pos = board[i];
             
             if (!pos.isMarked()){
                 allPositionsMarked = false;
@@ -47,16 +49,23 @@ const gameboard = (() => {
     };
 
     const reset = () => {
-        positions.forEach((pos) => pos.clear());
+        board.forEach((pos) => pos.clear());
     }
 
-    return { getPositionByIndex, getIndexOfPosition, checkTie, reset };
+    return { getBoard, getPositionByIndex, getIndexOfPosition, checkTie, reset };
 })();
 
 //GAME
 
 const game = ((gameboard) => {
+    let result = null;
+    
     let gameOver = false;
+    const getGameResult = () => {
+        return {
+            result: result,
+        };
+    }
 
     const players = [
         playerFactory('Cesar', 'X'),
@@ -70,10 +79,15 @@ const game = ((gameboard) => {
     };
 
     const playRound = (position) => {
-        if (gameOver) return;
+        if (gameOver){
+            return;
+        };
 
-        markPosition(position, getActivePlayer());
-        switchActivePlayer();
+        let canPlaceMark = markPosition(position, getActivePlayer());
+        
+        if (canPlaceMark){
+            switchActivePlayer();
+        }
     }
 
     const resetGame = () => {
@@ -83,22 +97,29 @@ const game = ((gameboard) => {
 
     function markPosition(index, player){
         const position = gameboard.getPositionByIndex(index);
+        let canPlaceMark = true;
+
         if (position.isMarked()){
             console.log('Can\'t place a mark on a marked position.')
-            return;
+            return false;
         }
 
         position.mark(player);
-
         connectsRow = getConnection(player.getSymbol());
         isATie = gameboard.checkTie();
 
         if (connectsRow){
-
+            gameOver = true;
+            resultMessage = `${position.getOwner()} wins`;
+            console.log(`${position.getOwner()} wins`);
         }
         else if(isATie){
+            gameOver = true;
+            resultMessage = "It\'s a tie!";
             console.log('It\'s a tie');
         }
+
+        return canPlaceMark;
     }
 
     function getConnection(symbol){
@@ -160,20 +181,46 @@ const game = ((gameboard) => {
 
         return connects;
     }
+    //PLAYERS
 
-    return { playRound, getActivePlayer, resetGame };
+    function playerFactory(name, symbol){
+        let score = 0;
+        const sumScore = (amount) => {
+            score += amount;
+        };
+    
+        const getScore = () => score;
+        const getSymbol = () => symbol;
+        const clearScore = () => score = 0;
+    
+        return { name, sumScore, getScore, getSymbol, clearScore };
+    }
+
+    return { playRound, getActivePlayer, resetGame, getBoard:gameboard.getBoard };
 })(gameboard);
 
-//PLAYERS 
-function playerFactory(name, symbol){
-    let score = 0;
-    const sumScore = (amount) => {
-        score += amount;
-    };
+const screenController = ((game) => {
+    const board = game.getBoard();
+    const positions = document.querySelectorAll('.position');
+    for (let i = 0; i < positions.length; i++) {
+        const position = positions[i];
+        position.addEventListener('click', () => {
+            game.playRound(i);
+            updateBoard();
+        });
+    }
 
-    const getScore = () => score;
-    const getSymbol = () => symbol;
-    const clearScore = () => score = 0;
+    function updateBoard(){
+        for (let i = 0; i < board.length; i++) {
+            const boardPosition = board[i];
+            const owner = boardPosition.getOwner();
 
-    return { name, sumScore, getScore, getSymbol, clearScore };
-}
+            if (owner){
+                let symbol = owner.getSymbol()
+                positions[i].setAttribute('data-symbol', symbol);
+            }
+        }
+    }
+
+
+})(game);

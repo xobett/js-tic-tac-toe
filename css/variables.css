@@ -1,9 +1,13 @@
 :root{
-    --clr-bckgrnd: #75757a;
+    --clr-bckgrnd: #19354e;
     --clr-white: #ffffff;
     --clr-blck: #272727;
     --clr-hover: #c9c9c9;
     --clr-active: #8b8b8b;
+    --clr-dark-purple: #150f46;
+    --grdnt-moon-purple: linear-gradient(to right, #8f94fb, #4e54c8);
+    --grdnt-red-sunset: linear-gradient(to right, #363622, #150f46);
 
     user-select: none;
+    
 }
