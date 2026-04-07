@@ -23,23 +23,29 @@ body{
 
     font-size: 1.9rem;
     color: var(--clr-white);
-    background-color: var(--clr-dark-purple);
+    background-color: var(--clr-purple-dark);
 }
 
 .game-container{
-    display: grid;
+    display: none;
     grid-template-columns: 0.5fr 2fr 0.5fr;
 
     place-items: center;
 }
 
+.message-container{
+    color: var(--clr-black);
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
 @media screen and (max-width:600px) {
     .gameboard{
+        width: 60%;
         height: 80%;
     }
 
     .game-container{
-        display: grid;
         grid-template-columns: none;
         grid-template-rows: 0.1fr 2fr 0.1fr;
     }

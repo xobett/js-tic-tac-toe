@@ -58,68 +58,86 @@ const gameboard = (() => {
 //GAME
 
 const game = ((gameboard) => {
-    let result = null;
-    
-    let gameOver = false;
-    const getGameResult = () => {
-        return {
-            result: result,
-        };
-    }
+    let message;
 
-    const players = [
-        playerFactory('Cesar', 'X'),
-        playerFactory('Abraham', 'O'),
-    ];
-    let activePlayer = players[0];
+    let gameOver = false;
+    const eventTarget = new EventTarget();
+    const gameSetEvent = new Event('gameSet');
+    const gameOverEvent = new Event('gameOver');
+    const switchPlayerEvent = new Event('switchPlayer');
+    
+    const getEventTarget = () => eventTarget;
+    
+    const players = [];
+    let activePlayer;
+    const getPlayers = () => players;
+    const setPlayers = (names) => {
+        players.push(playerFactory(names[0], 'X', 'player-one'));
+        players.push(playerFactory(names[1], 'O', 'player-two'));
+        activePlayer = players[0];
+
+        //Initial message
+        message = `It's ${activePlayer.name}\'s turn`;
+        eventTarget.dispatchEvent(gameSetEvent);
+    }
 
     const getActivePlayer = () => activePlayer;
     const switchActivePlayer = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
+        message = `It's ${activePlayer.name}\'s turn`;
+        eventTarget.dispatchEvent(switchPlayerEvent);
     };
+
+    const getMessage = () => message;
 
     const playRound = (position) => {
         if (gameOver){
             return;
         };
 
-        let canPlaceMark = markPosition(position, getActivePlayer());
+        let success = markPosition(position, getActivePlayer());
         
-        if (canPlaceMark){
+        if (success && !gameOver){
             switchActivePlayer();
         }
     }
 
     const resetGame = () => {
+        gameOver = false;
         gameboard.reset();
-        players.forEach((player) => player.clearScore());
+
+        switchActivePlayer();
     }
 
     function markPosition(index, player){
         const position = gameboard.getPositionByIndex(index);
-        let canPlaceMark = true;
+        let success = true;
 
         if (position.isMarked()){
-            console.log('Can\'t place a mark on a marked position.')
-            return false;
+            success = false;
+            return success;
         }
 
         position.mark(player);
-        connectsRow = getConnection(player.getSymbol());
-        isATie = gameboard.checkTie();
+        const connectsRow = getConnection(player.getSymbol());
+        const isATie = gameboard.checkTie();
 
-        if (connectsRow){
+        if (connectsRow || isATie){
             gameOver = true;
-            resultMessage = `${position.getOwner()} wins`;
-            console.log(`${position.getOwner()} wins`);
-        }
-        else if(isATie){
-            gameOver = true;
-            resultMessage = "It\'s a tie!";
-            console.log('It\'s a tie');
+
+            if (connectsRow){
+                const owner = position.getOwner();
+                message = `${owner.name} wins`;
+                owner.sumScore(1);
+            }
+            else if(isATie){
+                message = "It\'s a tie!";
+            }
+
+            eventTarget.dispatchEvent(gameOverEvent);
         }
 
-        return canPlaceMark;
+        return success;
     }
 
     function getConnection(symbol){
@@ -172,9 +190,6 @@ const game = ((gameboard) => {
             }
 
             if (connects){
-                console.log(
-                    "connected on " + positions
-                );
                 break;
             }
         }
@@ -183,7 +198,7 @@ const game = ((gameboard) => {
     }
     //PLAYERS
 
-    function playerFactory(name, symbol){
+    function playerFactory(name, symbol, alias){
         let score = 0;
         const sumScore = (amount) => {
             score += amount;
@@ -192,25 +207,49 @@ const game = ((gameboard) => {
         const getScore = () => score;
         const getSymbol = () => symbol;
         const clearScore = () => score = 0;
-    
-        return { name, sumScore, getScore, getSymbol, clearScore };
+        const getAlias = () => alias;
+
+        return { name, sumScore, getScore, getSymbol, getAlias, clearScore };
     }
 
-    return { playRound, getActivePlayer, resetGame, getBoard:gameboard.getBoard };
+    return { playRound, getActivePlayer, resetGame, getMessage, getBoard:gameboard.getBoard, getEventTarget, getPlayers, setPlayers };
 })(gameboard);
 
 const screenController = ((game) => {
+    const form = document.getElementById('form');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const data = Array.from(formData.entries());
+
+        for (const [key, value] of data) {
+            const playerName = document.querySelector(`.${key}`);
+            playerName.textContent = value;
+        }
+
+        const names = Array.from(formData.values());
+        game.setPlayers(names);
+    });
+
     const board = game.getBoard();
     const positions = document.querySelectorAll('.position');
+    const resetBtn = document.querySelector('.reset-btn');
+    resetBtn.addEventListener('click', () => {
+        game.resetGame();
+
+        displayMessage();
+        updateUI();
+    });
+
     for (let i = 0; i < positions.length; i++) {
         const position = positions[i];
         position.addEventListener('click', () => {
             game.playRound(i);
-            updateBoard();
+            updateUI();
         });
     }
 
-    function updateBoard(){
+    function updateUI(){
         for (let i = 0; i < board.length; i++) {
             const boardPosition = board[i];
             const owner = boardPosition.getOwner();
@@ -218,9 +257,37 @@ const screenController = ((game) => {
             if (owner){
                 let symbol = owner.getSymbol()
                 positions[i].setAttribute('data-symbol', symbol);
+            }else{
+                positions[i].setAttribute('data-symbol', '');
             }
         }
+
+        const players = game.getPlayers();
+        players.forEach((player) => {
+            const scoreTxt = document.querySelector(`.${player.getAlias()}-score`);
+            scoreTxt.textContent = player.getScore().toString();
+        })
     }
 
+    game.getEventTarget().addEventListener('gameSet', setInitialUI);
+    game.getEventTarget().addEventListener('gameOver', displayMessage);
+    game.getEventTarget().addEventListener('switchPlayer', displayMessage);
+
+    function displayMessage(){
+        const message = game.getMessage();
+
+        const resultsContainer = document.querySelector('.message-container');
+        resultsContainer.textContent = message;
+    }
+
+    function setInitialUI(){
+        form.reset();
+        const playersInputContainer = document.querySelector('.players-input-container');
+        playersInputContainer.style.setProperty('display', 'none');
+        const gameContainer = document.querySelector('.game-container');
+        gameContainer.style.setProperty('display', 'grid');
+        displayMessage();
+        updateUI();
+    }
 
 })(game);

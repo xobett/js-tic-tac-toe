@@ -7,6 +7,37 @@
     padding: 10px;
 }
 
+.players-input-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.players-input-container > form{
+    background-color: var(--clr-purple-light);
+    border: 2px solid var(--clr-white);
+    border-radius: 8px;
+
+    height: 45%;
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+form > .message{
+    color: var(--clr-white);
+
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.15rem;
+}
+
+form > button{
+    margin: 0 auto;
+}
+
 
 @media screen and (max-width:600px) {
     .player-data{

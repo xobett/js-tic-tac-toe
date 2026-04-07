@@ -6,6 +6,8 @@
     flex-direction: column;
     justify-content: space-evenly;
     align-items: center;
+
+    gap: 20px;
 }
 
 .gameboard{
@@ -16,7 +18,7 @@
     grid-template-rows: repeat(3, minmax(0, 1fr));
     grid-template-columns: repeat(3, minmax(0, 1fr));
 
-    box-shadow: 0px 7px 10px var(--clr-blck);
+    box-shadow: 0px 7px 10px var(--clr-black);
 }
 
 .position{
@@ -30,7 +32,9 @@
 }
 
 .position{
-    border: 1px solid var(--clr-blck);
+    position: relative;
+
+    border: 1px solid var(--clr-black);
     border-collapse: collapse;
 }
 
@@ -43,6 +47,8 @@
 }
 
 .position::after{
+    position: absolute;
+
     content: attr(data-symbol);
-    font-size: 6rem;
+    font-size: 4rem;
 }
